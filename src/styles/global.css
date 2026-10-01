@@ -249,7 +249,6 @@ body.prose main h2,
 body.prose main h3,
 body.prose main h4,
 body.prose main .byline,
-body.prose main .article-actions,
 body.prose main figcaption,
 body.prose main .caption,
 body.prose main table {
@@ -318,28 +317,6 @@ body.prose main .byline-authors {
 body.prose main .byline-authors sup,
 body.prose main .byline-affil sup {
   color: var(--blog-muted);
-}
-
-body.prose main .article-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: -0.35rem;
-  margin-bottom: 1.7rem;
-}
-
-body.prose main .article-actions a {
-  border: 1px solid var(--blog-border);
-  border-radius: 999px;
-  background: var(--blog-surface);
-  color: var(--blog-ink-2);
-  padding: 0.32rem 0.82rem;
-  font-size: 0.86rem;
-  text-decoration: none;
-}
-
-body.prose main .article-actions a:hover {
-  color: var(--blog-ink);
-  border-color: var(--blog-accent);
 }
 
 body.prose main figure {

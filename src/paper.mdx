@@ -19,11 +19,6 @@ import arenaLeaderboard from "./assets/arena-leaderboard.png";
 <p className="byline byline-authors">Yuanhao Ban<sup>1,2</sup>, I-Hung Hsu<sup>1</sup>, Anastasios Angelopoulos<sup>1</sup>, Wei-Lin Chiang<sup>1</sup>, Ion Stoica<sup>1</sup>, Cho-Jui Hsieh<sup>1,2</sup></p>
 <p className="byline byline-affil"><sup>1</sup> Arena Intelligence Inc. · <sup>2</sup> UCLA</p>
 
-<div className="article-actions">
-  <a href="paper.pdf">Paper</a>
-  <a href="https://github.com/banyuanhao/DiffusionNFT">Code</a>
-</div>
-
 How do we post-train a text-to-image model? While recent advances have made reinforcement learning increasingly practical for diffusion-based models, improving frontier open-source models remains surprisingly difficult. The key question is: **what reward should we optimize?**
 
 Human preference is an obvious starting point. If people consistently prefer one image over another, a reward model trained on those choices can provide a powerful learning signal. But preference alone does not capture everything users care about: an image can look great while missing an object from the prompt, adding things that were never requested, or drifting away from the requested style.
