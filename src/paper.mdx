@@ -1,218 +1,189 @@
 ---
-# This title is used for the browser tab and the link-preview card (see the
-# "description" and "thumbnail" keys below). The title displayed at the top of
-# the page is set separately, on the <Header> component in the body.
-title: Academic Project Page Template
-
-# The color theme of the page. Defaults to "device" (the preference set in the user's brower or operating system). Setting this to "light" or "dark" will override the user's preference. This is useful if your figures only look good in one theme.
-theme: device
-
-# This is the icon that appears in the user's browser tab. To customize, change the favicon.svg file in /public/, or add your own file to /public/ and change the filename here.
+title: How to Post-Train Text-to-Image Models
+theme: light
 favicon: favicon.svg
-
-# These keys are optional. If a link to your project page is in a Google search result, text message, or social media post, it will often appear as a "link preview card" based on its title, description, favicon, and thumbnail. After you publish your page, you can double check that these previews look right using [this tool](https://linkpreview.xyz/)
-description: Simple project page template for your research paper, built with Astro and Tailwind
-thumbnail: screenshot-light.png
+description: Combining human preference rewards with prompt-specific rubric rewards for stronger text-to-image post-training.
+thumbnail: thumbnail.png
 ---
 
 import Header from "./components/Header.astro";
-import Video from "./components/Video.astro";
 import HighlightedSection from "./components/HighlightedSection.astro";
-import SmallCaps from "./components/SmallCaps.astro";
 import Figure from "./components/Figure.astro";
 import Picture from "./components/Picture.astro";
-import ModelViewer from "./components/ModelViewer.astro"
-import TwoColumns from "./components/TwoColumns.astro";
-import YouTubeVideo from "./components/YouTubeVideo.astro";
-import Carousel from "./components/Carousel.astro";
-import CarouselSlide from "./components/CarouselSlide.astro";
 import Wide from "./components/Wide.astro";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/starwind/tabs";
-import { Comparison } from "./components/Comparison.tsx";
 
-import outside from "./assets/outside.mp4";
-import dogsDiffc from "./assets/dogs-diffc.png"
-import dogsTrue from "./assets/dogs-true.png"
-import dogsMsillm from "@/assets/dogs-msillm.jpg"
+import checklist from "./assets/faithfulness-checklist.png";
+import recipeProgression from "./assets/recipe-progression.png";
+import antiHackComparison from "./assets/anti-hack-comparison.png";
+import qualitativeComparison from "./assets/qualitative-comparison.png";
+import rmScaling from "./assets/rm-scaling-law.png";
+import arenaLeaderboard from "./assets/arena-leaderboard.png";
 
 <Header
-  title="Academic Project Page Template"
-  conference="Conference Name"
+  title="How to Post-Train Text-to-Image Models"
+  conference="Combining Preference and Rubric Rewards"
   authors={[
-    {
-      name: "Roman Hauksson",
-      url: "https://roman.technology",
-      institution: "University of Texas at Dallas",
-      notes: ["*", "†"],
-    },
-    { name: "Author Two", institution: "Institution Two", notes: ["*", "†"] },
-    { name: "Author Three", institution: "Institution Three", notes: ["*"] },
-    { name: "Author Four", institution: "Institution Four" },
-  ]}
-  notes={[
-    { symbol: "*", text: "author note one" },
-    { symbol: "†", text: "author note two" },
+    { name: "Yuanhao Ban", institution: "Arena Intelligence / UCLA" },
+    { name: "I-Hung Hsu", institution: "Arena Intelligence" },
+    { name: "Anastasios Angelopoulos", institution: "Arena Intelligence" },
+    { name: "Wei-Lin Chiang", institution: "Arena Intelligence" },
+    { name: "Ion Stoica", institution: "Arena Intelligence" },
+    { name: "Cho-Jui Hsieh", institution: "Arena Intelligence / UCLA" },
   ]}
   links={[
-    { name: "Paper", url: "https://github.com/RomanHauksson/academic-project-astro-template", icon: "ri:file-pdf-2-line" },
-    { name: "Code", url: "https://github.com/RomanHauksson/academic-project-astro-template", icon: "ri:github-line" },
-    { name: "arXiv", url: "https://github.com/RomanHauksson/academic-project-astro-template", icon: "academicons:arxiv" },
-    { name: "Slides", url: "https://github.com/RomanHauksson/academic-project-astro-template", icon: "ri:slideshow-2-line" },
+    { name: "Paper", url: "paper.pdf", icon: "ri:file-pdf-2-line" },
+    { name: "Code", url: "https://github.com/banyuanhao/DiffusionNFT", icon: "ri:github-line" },
   ]}
 >
-  {/*
-    Optionally place a cover image or video behind the header. Import the
-    asset (from src/assets/, so images are optimized) and pass it through the
-    "background" slot using the Picture or Video component:
-
-      <Picture slot="background" src={cover} alt="" />
-      <Video slot="background" src={outside} controls={false} />
-  */}
-  <Picture slot="background" src={dogsTrue} alt="" priority />
+  <Picture slot="background" src={qualitativeComparison} alt="Qualitative comparison of FLUX.2-dev base, a naive reward recipe, and the full composed reward recipe." priority />
 </Header>
 
 <HighlightedSection>
 
-## Abstract
+How do we post-train a text-to-image model? While recent advances have made reinforcement learning increasingly practical for diffusion-based models, improving frontier open-source models remains surprisingly difficult. The key question is: **what reward should we optimize?**
 
-This is a template you can use to create a professional-looking, accessible, and performant project page for your research paper. [See the code for the template and instructions on how to use it yourself on GitHub](https://github.com/RomanHauksson/academic-project-astro-template). It's made with the [Astro web framework](https://astro.build/) and styled with [Tailwind](https://tailwindcss.com/). You write the content in [MDX](https://mdxjs.com/), which enables markdown formatting like **bold**, _italics_, and ~strikethrough~, as well as custom components like <SmallCaps>small caps.</SmallCaps>
+Human preference is an obvious starting point. If people consistently prefer one image over another, a reward model trained on those choices can provide a powerful learning signal. But preference alone does not capture everything users care about: an image can look great while missing an object from the prompt, adding things that were never requested, or drifting away from the requested style.
+
+In our latest work, we explore a simple recipe: **combine human preference with explicit rubric-based rewards**. We train an Arena reward model on roughly **5 million pairwise human preference votes**, and use vision-language models to automatically construct rubrics that evaluate whether an image follows the prompt, respects relevant constraints, and avoids known reward-hacking behaviors.
+
+The result is a post-training recipe that improves two already-strong text-to-image models under live human evaluation. Our post-trained **FLUX.2-dev gains 69 Arena points** in our live T2I leaderboard, while our post-trained **Ideogram 4 reaches 1224 Arena score** and surpasses every publicly listed open-source model by September 4, 2026.
 
 </HighlightedSection>
 
-## Visuals
+## Reward Design for T2I Post-Training
 
-### Image
+Recent methods such as Flow-GRPO and DiffusionNFT have made reinforcement learning increasingly practical for diffusion- and flow-based image generation models. The remaining question is reward design: **what reward actually represents a better image?**
 
-Use the `Picture` component to display images. If you have a figure in PDF format, you can pass in its path as the `src` prop and it will be converted into a web-friendly image automatically.
+### 1. Learning human preference from pairwise comparisons
 
-<Picture src={dogsDiffc} alt="Photo of two running dogs, lossily compressed using the DiffC algorithm" />
+Our first component is a reward model trained on real-world human preferences. Using roughly 5 million pairwise human votes collected from Text-to-Image Arena across more than 100 models, we train a Bradley--Terry reward model. Given a prompt and an image, the model outputs a scalar preference score that captures broad human judgments such as visual quality, composition, and aesthetics.
 
-### Video
-
-<Video src={outside} />
-
-### Wide visual
-
-I constrained the maximum width of the text column to make sure it's readable even when the screen is wide. But images and other visuals should "break out" and take up more horizontal space: for this, try wrapping them in the `Wide` component.
-
-<Wide>
-  <Picture src={dogsDiffc} alt="Photo of two running dogs, lossily compressed using the DiffC algorithm" />
-</Wide>
-
-### Figure with caption
-
-Wrap a visual in a `Figure` component to add a caption.
+Scaling preference data matters. In downstream RL, increasing the reward-model training set from 10K to 100K to 500K preference pairs steadily improves the Stage 1 win rate, and the full 5.6M-pair reward model performs best.
 
 <Figure>
-  <Picture slot="figure" src={dogsDiffc} alt="Photo of two running dogs, lossily compressed using the DiffC algorithm" />
-  <Fragment slot="caption">A photo of two dogs running side-by-side in shallow water, lossily compressed using the [DiffC algorithm](https://jeremyiv.github.io/diffc-project-page/).</Fragment>
+  <Picture slot="figure" src={rmScaling} alt="Scaling law showing that downstream RL win rate improves as the preference reward model is trained on more pairwise human votes." />
+  <Fragment slot="caption">Downstream RL performance scales with the amount of human preference data used to train the reward model.</Fragment>
 </Figure>
 
-### Comparison slider
+### 2. Faithfulness reward through auto-rubrics
 
-Use the `Comparison` component to compare two visuals with an interactive slider.
+Large-scale preference data provides a strong and general signal, but it does not explicitly check whether every detail in the prompt has been correctly followed. To explicitly measure prompt following, we introduce a faithfulness reward based on automatically generated, prompt-specific rubrics.
 
-<Comparison client:idle >
-  <Picture slot="itemOne" src={dogsDiffc} alt="Photo of two running dogs, lossily compressed using the DiffC algorithm" />
-  <Picture slot="itemTwo" src={dogsTrue} alt="True photo of two dogs running side-by-side in shallow water" />
-</Comparison>
+For each training prompt, a language model decomposes the prompt into a tree-structured checklist of concrete yes/no questions. Each question evaluates one aspect of the requested image, such as whether an object is present, whether it has the correct attribute, whether two objects have the requested spatial relationship, or whether a specified style is preserved. Dependencies between questions are also captured: checking the color of an object only makes sense if that object is present.
 
-### Tab panels
+A vision-language model then evaluates the generated image against these questions, and the fraction of satisfied criteria becomes the faithfulness reward.
 
-Tab panels are a great way to display a labeled collection of related visuals without taking up too much space.
+<Figure>
+  <Picture slot="figure" src={checklist} alt="A generated image paired with a dependency-aware faithfulness checklist where child questions are skipped when their parent check fails." />
+  <Fragment slot="caption">Faithfulness reward as a dependency-aware checklist: child checks are skipped when the parent condition is not satisfied.</Fragment>
+</Figure>
 
-<Tabs defaultValue="true">
-  <TabsList>
-    <TabsTrigger value="true">Ground truth</TabsTrigger>
-    <TabsTrigger value="diffc">DiffC (Flux-dev)</TabsTrigger>
-    <TabsTrigger value="msillm">MS-ILLM</TabsTrigger>
-  </TabsList>
-  <TabsContent value="true">
-    <Picture
-      src={dogsTrue}
-      alt="True photo of two dogs running side-by-side in shallow water"
-    />
-  </TabsContent>
-  <TabsContent value="diffc">
-    <Picture
-      src={dogsDiffc}
-      alt="Photo of two running dogs, lossily compressed using the DiffC algorithm"
-    />
-  </TabsContent>
-  <TabsContent value="msillm">
-    <Picture
-      src={dogsMsillm}
-      alt="Photo of two running dogs, lossily compressed using MS-ILLM"
-    />
-  </TabsContent>
-</Tabs>
+<Wide>
+  <iframe
+    src="faithfulness-animation.html"
+    title="Interactive faithfulness reward animation"
+    loading="lazy"
+    style={{ width: "100%", height: "780px", border: "0", borderRadius: "18px", boxShadow: "0 24px 60px rgba(15, 23, 42, 0.12)" }}
+  />
+</Wide>
 
-### Carousel
+### 3. Constraint rewards and anti-hack gating
 
-A carousel is another useful pattern for a collection of visuals that don't necessarily have meaningful labels.
+Faithfulness auto-rubrics can construct questions that check basic object presence, attributes, and relationships. However, they are less suited to checking constraints, such as whether the user wants to avoid an undesired style, especially when these constraints are implicit. More importantly, these auto-rubrics are derived from the prompt before training and therefore cannot anticipate reward-hacking behaviors that emerge during RL training.
 
-<Carousel>
-  <CarouselSlide>
-    <Picture src={dogsTrue} alt="True photo of two dogs running side-by-side in shallow water" />
-  </CarouselSlide>
-  <CarouselSlide>
-    <Picture src={dogsDiffc} alt="Photo of two running dogs, lossily compressed using the DiffC algorithm" />
-  </CarouselSlide>
-  <CarouselSlide>
-    <Picture
-      src={dogsMsillm}
-      alt="Photo of two running dogs, lossily compressed using MS-ILLM"
-    />
-  </CarouselSlide>
-</Carousel>
+To complement this, we introduce rubric-based rewards for constraint satisfaction and reward-hacking prevention. The constraint reward checks whether the model introduces content that conflicts with the user's intent, such as adding unnecessary objects, changing a requested style, or violating negative instructions. Because some prompts are open-ended and allow creative freedom, we apply this reward only when the prompt calls for relatively strict adherence.
 
-## Two columns
+We also use rubric-based rewards for recurring reward-hacking behaviors that emerge during RL, such as adding garbled text or drifting toward photorealism when a non-photographic style is requested.
 
-Use the two columns component to display two columns of content. In this example, the first column contains a YouTube video embed and the second column contains an interactive 3D model viewer. By default, they display side by side, but if the screen is narrow enough (for example, on mobile), they're arranged vertically.
-
-<TwoColumns>
-  <YouTubeVideo slot="left" videoId="wjZofJX0v4M" />
-  <ModelViewer slot="right" src="/BoxVertexColors.glb" alt="A cube colored with a rainbow gradient" />
-</TwoColumns>
-
-## $\LaTeX$
-
-You can also add $\LaTeX$ formulas, rendered during the build process using [$\KaTeX$](https://katex.org/) so they're quick to load for visitors of your project page. You can write them inline, like this: $a^2 + b^2 = c^2$. Or, you can write them as a block:
+Rather than treating these anti-reward-hack rewards as independent reward objectives, we use them to shape the preference reward through a simple gating function. Let $r^{\mathrm{norm}}_{\mathrm{pref}}$ denote the normalized preference reward and let $d_{\mathrm{hack}} \in \{0,1\}$ indicate whether a reward-hacking behavior is detected:
 
 $$
-\int_a^b f(x) dx
+r_{\mathrm{pref}}^{\mathrm{gated}}
+=
+\begin{cases}
+r^{\mathrm{norm}}_{\mathrm{pref}}, & d_{\mathrm{hack}} = 0,\\
+\min(r^{\mathrm{norm}}_{\mathrm{pref}}, 0), & d_{\mathrm{hack}} = 1.
+\end{cases}
 $$
 
-## Citation
+Thus, the preference reward is preserved when no reward-hacking behavior is detected, while positive preference reward is canceled when the anti-reward-hacking signal is flagged. This allows the detector to suppress known exploits without introducing another independent objective that the policy can optimize or game.
 
-If you copy your bibliography into `./bibliography.bib`, you can cite papers using their BibTeX keys, and they'll be automatically formatted and included in the bibliography section at the end. For example: [@vaswani2017attention]. Note that these citations are distinct from footnotes[^mynote], which show up in a separate section if you use them.
+### 4. Weight-space ensembling
 
-[^mynote]: On the web, they should really be called "endnotes", since each page constitutes a full document.
+Finally, we found that models trained with different reward configurations often develop complementary strengths. We therefore ensemble independently optimized policies directly in weight space by averaging their weight updates [2]. Together with independent reward normalization and prompt-dependent gating, this gives us a simple reward-composition recipe that works consistently without extensive reward-weight tuning.
 
-## Table
+## Offline Results: Why Reward Composition Matters
 
-Add simple tables using [GitHub Flavored Markdown syntax](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/organizing-information-with-tables):
+We train on 10K real user prompts sampled from Arena and evaluate on a held-out set of 1K Arena prompts. For each checkpoint, we compare the post-trained model against the frozen base model using the MMRBv2 pairwise evaluation protocol, with Gemini-3.5-Flash as the judge. Each image pair is evaluated in both presentation orders to reduce position bias, and we report the resulting win rate against the base model.
 
-| Model | Accuracy | F1 score | Training time (hours) |
-| :--- | :---: | :---: | :---: |
-| BERT-base | 0.89 | 0.87 | 4.5 |
-| RoBERTa-large | 0.92 | 0.91 | 7.2 |
-| DistilBERT | 0.86 | 0.84 | 2.1 |
-| XLNet | 0.90 | 0.89 | 6.8 |
+| Method | Arena RM | PickScore |
+| :--- | ---: | ---: |
+| DiffusionNFT baseline | 0.290 | 0.290 |
+| Faithfulness only | 0.366 | 0.366 |
+| Arena-T2I-Hard | 0.589 | 0.577 |
+| Preference only | 0.507 | 0.461 |
+| **Stage 1: preference + faithfulness + constraint** | **0.642** | **0.581** |
+| **Stage 2: + anti-hack veto** | **0.635** | **0.571** |
+| **Stage 3: weight-space soup** | **0.660** | **0.626** |
 
-## BibTeX citation
+The results show a clear progression. Optimizing preference alone is not sufficient. Adding the faithfulness reward substantially improves performance, introducing the intent-gated constraint reward further raises the win rate to 64.2%, and ensembling policies trained with complementary reward configurations gives the strongest result, reaching 66.0% win rate with Arena RM. The same recipe also holds when using an open-source reward model such as PickScore.
 
-Displaying the BibTeX entry for your paper in a code block makes it easy to copy and paste.
+<Wide>
+  <Figure>
+    <Picture slot="figure" src={recipeProgression} alt="Visual comparison of base, naive reward recipes, and the full composed reward recipe." />
+    <Fragment slot="caption">Reward composition fixes complementary failure modes: preference-only and naive recipes can miss constraints or add clutter, while the full recipe better preserves user intent.</Fragment>
+  </Figure>
+</Wide>
+
+## Preventing Reward-Hacking Modes
+
+During RL, we observe that models can discover shortcuts. One recurring mode is photorealistic style drift: a model can increase the preference score by making an image look like a realistic photograph even when the prompt asks for a non-photographic style. The anti-reward-hack gate suppresses these known shortcuts without turning the detector itself into another objective to optimize.
+
+<Wide>
+  <Figure>
+    <Picture slot="figure" src={antiHackComparison} alt="Full-resolution comparison of base, a model without anti-reward-hack gating, and the final model with anti-reward-hack prevention." />
+    <Fragment slot="caption">Adding anti-reward-hack prevention reduces visual shortcuts such as style drift while retaining the gains from preference and rubric rewards.</Fragment>
+  </Figure>
+</Wide>
+
+## Qualitative Examples
+
+The examples below compare images generated before and after post-training. The naive approach uses only the Arena preference and faithfulness checklist rewards, while **Ours** uses the full recipe: constraint reward, anti-reward-hack reward, and weight-space ensembling. The naive approach often improves prompt following but can still violate constraints or clutter the scene. The full recipe better balances visual quality with the user's requested content and style.
+
+<Wide>
+  <Figure>
+    <Picture slot="figure" src={qualitativeComparison} alt="Full-resolution qualitative examples comparing FLUX.2-dev base, a naive reward recipe, and the full recipe." />
+    <Fragment slot="caption">Base vs. naive preference-plus-faithfulness training vs. the full composed reward recipe.</Fragment>
+  </Figure>
+</Wide>
+
+## Live Arena Results
+
+We also evaluate post-trained models through live, blind, pairwise human comparisons on the Text-to-Image Arena leaderboard. FLUX.2-dev improves from 1132.8 to 1202 Arena score after post-training, and Ideogram 4 improves from 1204 to 1224.
+
+<Figure>
+  <Picture slot="figure" src={arenaLeaderboard} alt="Arena leaderboard table showing post-trained FLUX.2-dev and Ideogram 4 scores compared to public reference models." />
+  <Fragment slot="caption">Live Text-to-Image Arena leaderboard snapshot from September 4, 2026.</Fragment>
+</Figure>
+
+## Takeaway
+
+Large-scale preference learning and explicit rubric-based evaluation are not competing approaches. Preference rewards provide broad coverage of human taste; rubric rewards cover sparse prompt-following and constraint-satisfaction failures; hack detectors make optimization robust; and weight-space ensembling combines complementary strengths.
+
+Together, these components form a practical recipe for post-training frontier text-to-image models.
+
+## References
+
+[1] Ban, Y., Xie, T., An, S., Hong, Y., Frick, E., Hsu, I., et al. **Arena-T2I Hard: Benchmarking and Improving Faithfulness with Dependency-Aware Checklist.** NeurIPS 2026 Spotlight.
+
+[2] Wortsman, M., Ilharco, G., Gadre, S. Y., Roelofs, R., Gontijo-Lopes, R., Morcos, A. S., et al. **Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time.** ICML 2022.
+
+## BibTeX
 
 ```bibtex
-@misc{roman2024academic,
-  author = "{Roman Hauksson}",
-  title = "Academic Project Page Template",
-  year = "2024",
-  howpublished = "\url{https://research-template.roman.technology}",
+@article{ban2026posttrainingt2i,
+  title   = {Post-Training Frontier Text-to-Image Models by Composing Preference and Rubric Rewards},
+  author  = {Ban, Yuanhao and Hsu, I-Hung and Angelopoulos, Anastasios and Chiang, Wei-Lin and Stoica, Ion and Hsieh, Cho-Jui},
+  year    = {2026},
 }
 ```
-
-## Bibliography
-
-[^ref]
