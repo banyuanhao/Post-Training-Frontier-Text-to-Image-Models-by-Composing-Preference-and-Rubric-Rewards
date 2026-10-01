@@ -314,6 +314,17 @@ body.prose main .byline-authors {
   border-bottom: 0;
 }
 
+body.prose main .byline-authors a {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 0.16em;
+}
+
+body.prose main .byline-authors a:hover {
+  color: var(--blog-accent);
+  text-decoration: underline;
+}
+
 body.prose main .byline-authors sup,
 body.prose main .byline-affil sup {
   color: var(--blog-muted);
