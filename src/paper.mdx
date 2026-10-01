@@ -32,21 +32,14 @@ In our latest work, we explore a simple idea: **combine human preference with ex
 
 The result is a post-training recipe that improves two already-strong text-to-image models under live human evaluation. Our post-trained **FLUX.2-dev gains 69 Arena points** in our live T2I leaderboard, while our post-trained **Ideogram 4 reaches 1224 Arena score** and surpasses every publicly listed open-source model by September 4, 2026.
 
-## Benchmark Results
+## Live Arena Results
 
-We train on 10K real user prompts sampled from Arena and evaluate on a held-out set of 1K Arena prompts. For each checkpoint, we compare the post-trained model against the frozen base model using the MMRBv2 pairwise evaluation protocol, with Gemini-3.5-Flash as the judge. Each image pair is evaluated in both presentation orders to reduce position bias, and we report the resulting win rate against the base model.
+We evaluate post-trained models through live, blind, pairwise human comparisons on the Text-to-Image Arena leaderboard. FLUX.2-dev improves from 1132.8 to 1202 Arena score after post-training, and Ideogram 4 improves from 1204 to 1224.
 
-| Method | Arena RM | PickScore |
-| :--- | ---: | ---: |
-| DiffusionNFT baseline | 0.290 | 0.290 |
-| Faithfulness only | 0.366 | 0.366 |
-| Arena-T2I-Hard | 0.589 | 0.577 |
-| Preference only | 0.507 | 0.461 |
-| **Stage 1: preference + faithfulness + constraint** | **0.642** | **0.581** |
-| **Stage 2: + anti-hack veto** | **0.635** | **0.571** |
-| **Stage 3: weight-space soup** | **0.660** | **0.626** |
-
-The results show a clear progression. Optimizing preference alone is not sufficient; adding the faithfulness reward substantially improves performance, introducing the intent-gated constraint reward further raises the win rate to 64.2%, and ensembling policies trained with complementary reward configurations gives the strongest result, reaching 66.0% win rate with Arena RM. The same recipe also holds when using an open-source reward model such as PickScore.
+<Figure>
+  <Picture slot="figure" src={arenaLeaderboard} alt="Arena leaderboard table showing post-trained FLUX.2-dev and Ideogram 4 scores compared to public reference models." />
+  <Fragment slot="caption">Live Text-to-Image Arena leaderboard snapshot from September 4, 2026.</Fragment>
+</Figure>
 
 ## Reward Design for T2I Post-Training
 
@@ -118,14 +111,21 @@ The following visual examples compare images generated before and after post-tra
   <p className="caption">Base vs. naive preference-plus-faithfulness training vs. the full composed reward recipe.</p>
 </div>
 
-## Live Arena Results
+## Offline Results: Why Reward Composition Matters
 
-We also evaluate post-trained models through live, blind, pairwise human comparisons on the Text-to-Image Arena leaderboard. FLUX.2-dev improves from 1132.8 to 1202 Arena score after post-training, and Ideogram 4 improves from 1204 to 1224.
+We train on 10K real user prompts sampled from Arena and evaluate on a held-out set of 1K Arena prompts. For each checkpoint, we compare the post-trained model against the frozen base model using the MMRBv2 pairwise evaluation protocol, with Gemini-3.5-Flash as the judge. Each image pair is evaluated in both presentation orders to reduce position bias, and we report the resulting win rate against the base model.
 
-<Figure>
-  <Picture slot="figure" src={arenaLeaderboard} alt="Arena leaderboard table showing post-trained FLUX.2-dev and Ideogram 4 scores compared to public reference models." />
-  <Fragment slot="caption">Live Text-to-Image Arena leaderboard snapshot from September 4, 2026.</Fragment>
-</Figure>
+| Method | Arena RM | PickScore |
+| :--- | ---: | ---: |
+| DiffusionNFT baseline | 0.290 | 0.290 |
+| Faithfulness only | 0.366 | 0.366 |
+| Arena-T2I-Hard | 0.589 | 0.577 |
+| Preference only | 0.507 | 0.461 |
+| **Stage 1: preference + faithfulness + constraint** | **0.642** | **0.581** |
+| **Stage 2: + anti-hack veto** | **0.635** | **0.571** |
+| **Stage 3: weight-space soup** | **0.660** | **0.626** |
+
+The results show a clear progression. Optimizing preference alone is not sufficient; adding the faithfulness reward substantially improves performance, introducing the intent-gated constraint reward further raises the win rate to 64.2%, and ensembling policies trained with complementary reward configurations gives the strongest result, reaching 66.0% win rate with Arena RM. The same recipe also holds when using an open-source reward model such as PickScore.
 
 ## References
 
