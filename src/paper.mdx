@@ -6,90 +6,64 @@ description: Combining human preference rewards with prompt-specific rubric rewa
 thumbnail: thumbnail.png
 ---
 
-import Header from "./components/Header.astro";
-import HighlightedSection from "./components/HighlightedSection.astro";
 import Figure from "./components/Figure.astro";
 import Picture from "./components/Picture.astro";
-import Wide from "./components/Wide.astro";
 
-import checklist from "./assets/faithfulness-checklist.png";
-import recipeProgression from "./assets/recipe-progression.png";
 import antiHackComparison from "./assets/anti-hack-comparison.png";
 import qualitativeComparison from "./assets/qualitative-comparison.png";
 import rmScaling from "./assets/rm-scaling-law.png";
 import arenaLeaderboard from "./assets/arena-leaderboard.png";
 
-<Header
-  title="How to Post-Train Text-to-Image Models"
-  conference="Combining Preference and Rubric Rewards"
-  authors={[
-    { name: "Yuanhao Ban", institution: "Arena Intelligence / UCLA" },
-    { name: "I-Hung Hsu", institution: "Arena Intelligence" },
-    { name: "Anastasios Angelopoulos", institution: "Arena Intelligence" },
-    { name: "Wei-Lin Chiang", institution: "Arena Intelligence" },
-    { name: "Ion Stoica", institution: "Arena Intelligence" },
-    { name: "Cho-Jui Hsieh", institution: "Arena Intelligence / UCLA" },
-  ]}
-  links={[
-    { name: "Paper", url: "paper.pdf", icon: "ri:file-pdf-2-line" },
-    { name: "Code", url: "https://github.com/banyuanhao/DiffusionNFT", icon: "ri:github-line" },
-  ]}
->
-  <Picture slot="background" src={qualitativeComparison} alt="Qualitative comparison of FLUX.2-dev base, a naive reward recipe, and the full composed reward recipe." priority />
-</Header>
+# How to Post-Train Text-to-Image Models: Combining Preference and Rubric Rewards
 
-<HighlightedSection>
+<p className="byline byline-authors">Yuanhao Ban<sup>1,2</sup>, I-Hung Hsu<sup>1</sup>, Anastasios Angelopoulos<sup>1</sup>, Wei-Lin Chiang<sup>1</sup>, Ion Stoica<sup>1</sup>, Cho-Jui Hsieh<sup>1,2</sup></p>
+<p className="byline byline-affil"><sup>1</sup> Arena Intelligence Inc. · <sup>2</sup> UCLA</p>
+
+<div className="article-actions">
+  <a href="paper.pdf">Paper</a>
+  <a href="https://github.com/banyuanhao/DiffusionNFT">Code</a>
+</div>
 
 How do we post-train a text-to-image model? While recent advances have made reinforcement learning increasingly practical for diffusion-based models, improving frontier open-source models remains surprisingly difficult. The key question is: **what reward should we optimize?**
 
 Human preference is an obvious starting point. If people consistently prefer one image over another, a reward model trained on those choices can provide a powerful learning signal. But preference alone does not capture everything users care about: an image can look great while missing an object from the prompt, adding things that were never requested, or drifting away from the requested style.
 
-In our latest work, we explore a simple recipe: **combine human preference with explicit rubric-based rewards**. We train an Arena reward model on roughly **5 million pairwise human preference votes**, and use vision-language models to automatically construct rubrics that evaluate whether an image follows the prompt, respects relevant constraints, and avoids known reward-hacking behaviors.
+In our latest work, we explore a simple idea: **combine human preference with explicit rubric-based rewards**. We train an Arena reward model on roughly **5 million pairwise human preference votes**, and use vision-language models to automatically construct rubrics that evaluate whether an image follows the prompt, respects relevant constraints, and avoids known reward-hacking behaviors.
 
 The result is a post-training recipe that improves two already-strong text-to-image models under live human evaluation. Our post-trained **FLUX.2-dev gains 69 Arena points** in our live T2I leaderboard, while our post-trained **Ideogram 4 reaches 1224 Arena score** and surpasses every publicly listed open-source model by September 4, 2026.
 
-</HighlightedSection>
-
 ## Reward Design for T2I Post-Training
 
-Recent methods such as Flow-GRPO and DiffusionNFT have made reinforcement learning increasingly practical for diffusion- and flow-based image generation models. The remaining question is reward design: **what reward actually represents a better image?**
+Recent methods such as Flow-GRPO and DiffusionNFT have made reinforcement learning increasingly practical for diffusion- and flow-based image generation models. But what reward actually represents a better image?
 
-### 1. Learning human preference from pairwise comparisons
+### Learning human preference from pairwise comparisons
 
-Our first component is a reward model trained on real-world human preferences. Using roughly 5 million pairwise human votes collected from Text-to-Image Arena across more than 100 models, we train a Bradley--Terry reward model. Given a prompt and an image, the model outputs a scalar preference score that captures broad human judgments such as visual quality, composition, and aesthetics.
-
-Scaling preference data matters. In downstream RL, increasing the reward-model training set from 10K to 100K to 500K preference pairs steadily improves the Stage 1 win rate, and the full 5.6M-pair reward model performs best.
+Our first component is a reward model trained on real-world human preferences. Using roughly 5 million pairwise human votes collected from Text-to-Image Arena across more than 100 models, we train a Bradley--Terry reward model. Given a prompt and an image, the model outputs a scalar preference score that captures broad human judgments such as visual quality, composition, and aesthetics. Scaling preference data matters: downstream post-training performance improves as the reward model is trained on more preference data.
 
 <Figure>
   <Picture slot="figure" src={rmScaling} alt="Scaling law showing that downstream RL win rate improves as the preference reward model is trained on more pairwise human votes." />
   <Fragment slot="caption">Downstream RL performance scales with the amount of human preference data used to train the reward model.</Fragment>
 </Figure>
 
-### 2. Faithfulness reward through auto-rubrics
+### Faithfulness reward through auto-rubrics
 
 Large-scale preference data provides a strong and general signal, but it does not explicitly check whether every detail in the prompt has been correctly followed. To explicitly measure prompt following, we introduce a faithfulness reward based on automatically generated, prompt-specific rubrics.
 
-For each training prompt, a language model decomposes the prompt into a tree-structured checklist of concrete yes/no questions. Each question evaluates one aspect of the requested image, such as whether an object is present, whether it has the correct attribute, whether two objects have the requested spatial relationship, or whether a specified style is preserved. Dependencies between questions are also captured: checking the color of an object only makes sense if that object is present.
+For each training prompt, we use a language model to decompose the prompt into a tree-structured checklist of concrete yes/no questions. Each question evaluates one aspect of the requested image, such as whether an object is present, whether it has the correct attribute, whether two objects have the requested spatial relationship, or whether a specified style is preserved. Dependencies between questions are also captured: checking the color of an object only makes sense if that object is present.
 
-A vision-language model then evaluates the generated image against these questions, and the fraction of satisfied criteria becomes the faithfulness reward.
+A vision-language model then evaluates the generated image against these questions, and the fraction of satisfied criteria becomes the faithfulness reward. More details can be found in [1].
 
-<Figure>
-  <Picture slot="figure" src={checklist} alt="A generated image paired with a dependency-aware faithfulness checklist where child questions are skipped when their parent check fails." />
-  <Fragment slot="caption">Faithfulness reward as a dependency-aware checklist: child checks are skipped when the parent condition is not satisfied.</Fragment>
-</Figure>
-
-<Wide>
+<div className="rubric-demo" aria-label="Interactive faithfulness reward animation">
   <iframe
     src="faithfulness-animation.html"
     title="Interactive faithfulness reward animation"
     loading="lazy"
-    style={{ width: "100%", height: "780px", border: "0", borderRadius: "18px", boxShadow: "0 24px 60px rgba(15, 23, 42, 0.12)" }}
   />
-</Wide>
+</div>
 
-### 3. Constraint rewards and anti-hack gating
+### Other rubric rewards and ensembling
 
-Faithfulness auto-rubrics can construct questions that check basic object presence, attributes, and relationships. However, they are less suited to checking constraints, such as whether the user wants to avoid an undesired style, especially when these constraints are implicit. More importantly, these auto-rubrics are derived from the prompt before training and therefore cannot anticipate reward-hacking behaviors that emerge during RL training.
+Faithfulness auto-rubric methods can construct questions that check basic object presence, attributes, and relationships. However, they are less suited to checking constraints, such as whether the user wants to avoid an undesired style, especially when these constraints are implicit. More importantly, these auto-rubrics are derived from the prompt before training and therefore cannot anticipate reward-hacking behaviors that emerge during RL training.
 
 To complement this, we introduce rubric-based rewards for constraint satisfaction and reward-hacking prevention. The constraint reward checks whether the model introduces content that conflicts with the user's intent, such as adding unnecessary objects, changing a requested style, or violating negative instructions. Because some prompts are open-ended and allow creative freedom, we apply this reward only when the prompt calls for relatively strict adherence.
 
@@ -108,8 +82,6 @@ $$
 
 Thus, the preference reward is preserved when no reward-hacking behavior is detected, while positive preference reward is canceled when the anti-reward-hacking signal is flagged. This allows the detector to suppress known exploits without introducing another independent objective that the policy can optimize or game.
 
-### 4. Weight-space ensembling
-
 Finally, we found that models trained with different reward configurations often develop complementary strengths. We therefore ensemble independently optimized policies directly in weight space by averaging their weight updates [2]. Together with independent reward normalization and prompt-dependent gating, this gives us a simple reward-composition recipe that works consistently without extensive reward-weight tuning.
 
 ## Offline Results: Why Reward Composition Matters
@@ -126,36 +98,25 @@ We train on 10K real user prompts sampled from Arena and evaluate on a held-out 
 | **Stage 2: + anti-hack veto** | **0.635** | **0.571** |
 | **Stage 3: weight-space soup** | **0.660** | **0.626** |
 
-The results show a clear progression. Optimizing preference alone is not sufficient. Adding the faithfulness reward substantially improves performance, introducing the intent-gated constraint reward further raises the win rate to 64.2%, and ensembling policies trained with complementary reward configurations gives the strongest result, reaching 66.0% win rate with Arena RM. The same recipe also holds when using an open-source reward model such as PickScore.
-
-<Wide>
-  <Figure>
-    <Picture slot="figure" src={recipeProgression} alt="Visual comparison of base, naive reward recipes, and the full composed reward recipe." />
-    <Fragment slot="caption">Reward composition fixes complementary failure modes: preference-only and naive recipes can miss constraints or add clutter, while the full recipe better preserves user intent.</Fragment>
-  </Figure>
-</Wide>
+The results show a clear progression. Optimizing preference alone is not sufficient; adding the faithfulness reward substantially improves performance, introducing the intent-gated constraint reward further raises the win rate to 64.2%, and ensembling policies trained with complementary reward configurations gives the strongest result, reaching 66.0% win rate with Arena RM. The same recipe also holds when using an open-source reward model such as PickScore.
 
 ## Preventing Reward-Hacking Modes
 
-During RL, we observe that models can discover shortcuts. One recurring mode is photorealistic style drift: a model can increase the preference score by making an image look like a realistic photograph even when the prompt asks for a non-photographic style. The anti-reward-hack gate suppresses these known shortcuts without turning the detector itself into another objective to optimize.
+The following examples compare images generated with and without the anti-reward-hack reward. We observe a photorealistic hacking mode during training: the model can make a result look like a realistic photograph even when the prompt asks for a non-photographic style. The anti-reward-hack gate suppresses this shortcut while retaining the gains from preference and rubric rewards.
 
-<Wide>
-  <Figure>
-    <Picture slot="figure" src={antiHackComparison} alt="Full-resolution comparison of base, a model without anti-reward-hack gating, and the final model with anti-reward-hack prevention." />
-    <Fragment slot="caption">Adding anti-reward-hack prevention reduces visual shortcuts such as style drift while retaining the gains from preference and rubric rewards.</Fragment>
-  </Figure>
-</Wide>
+<div className="wide-figure anti-hack-grid">
+  <img src={antiHackComparison.src} alt="Two-row, three-column comparison of base, a model without anti-reward-hack gating, and the final model on a girl prompt and a pixel-art prompt." />
+  <p className="caption">Anti-reward-hack examples on the girl and pixel-art prompts. Columns show the base model, a model without anti-reward-hack gating, and the final model.</p>
+</div>
 
 ## Qualitative Examples
 
-The examples below compare images generated before and after post-training. The naive approach uses only the Arena preference and faithfulness checklist rewards, while **Ours** uses the full recipe: constraint reward, anti-reward-hack reward, and weight-space ensembling. The naive approach often improves prompt following but can still violate constraints or clutter the scene. The full recipe better balances visual quality with the user's requested content and style.
+The following visual examples compare images generated before and after post-training. The naive approach uses only the Arena preference and faithfulness checklist rewards, while **Ours** uses the full recipe, adding the constraint reward, anti-reward-hack reward, and weight ensembling. The naive approach often improves prompt following but can still violate constraints or clutter the scene. The full recipe better balances visual quality with the user's requested content and style.
 
-<Wide>
-  <Figure>
-    <Picture slot="figure" src={qualitativeComparison} alt="Full-resolution qualitative examples comparing FLUX.2-dev base, a naive reward recipe, and the full recipe." />
-    <Fragment slot="caption">Base vs. naive preference-plus-faithfulness training vs. the full composed reward recipe.</Fragment>
-  </Figure>
-</Wide>
+<div className="wide-figure qualitative-large">
+  <img src={qualitativeComparison.src} alt="Full-resolution qualitative examples comparing FLUX.2-dev base, a naive reward recipe, and the full recipe." />
+  <p className="caption">Base vs. naive preference-plus-faithfulness training vs. the full composed reward recipe.</p>
+</div>
 
 ## Live Arena Results
 
@@ -165,12 +126,6 @@ We also evaluate post-trained models through live, blind, pairwise human compari
   <Picture slot="figure" src={arenaLeaderboard} alt="Arena leaderboard table showing post-trained FLUX.2-dev and Ideogram 4 scores compared to public reference models." />
   <Fragment slot="caption">Live Text-to-Image Arena leaderboard snapshot from September 4, 2026.</Fragment>
 </Figure>
-
-## Takeaway
-
-Large-scale preference learning and explicit rubric-based evaluation are not competing approaches. Preference rewards provide broad coverage of human taste; rubric rewards cover sparse prompt-following and constraint-satisfaction failures; hack detectors make optimization robust; and weight-space ensembling combines complementary strengths.
-
-Together, these components form a practical recipe for post-training frontier text-to-image models.
 
 ## References
 
