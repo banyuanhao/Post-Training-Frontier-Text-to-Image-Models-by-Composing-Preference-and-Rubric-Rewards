@@ -388,3 +388,49 @@ body.prose main td:nth-child(n + 2),
 body.prose main th:nth-child(n + 2) {
   text-align: right;
 }
+
+/* Publication links, styled to match the reference project page. */
+body.prose main .article-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 0 2rem;
+  font-family: var(--blog-sans);
+}
+
+body.prose main .article-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: #363636;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+body.prose main .article-actions a:hover {
+  background: #292929;
+  color: #fff;
+  text-decoration: none;
+}
+
+body.prose main .article-actions a:focus-visible {
+  outline: 3px solid var(--blog-accent);
+  outline-offset: 3px;
+}
+
+body.prose main .article-actions svg {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
